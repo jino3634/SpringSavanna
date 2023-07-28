@@ -25,6 +25,9 @@ import jp.co.sss.shop.repository.ItemRepository;
 import jp.co.sss.shop.util.BeanCopy;
 import jp.co.sss.shop.util.Constant;
 
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+
 /**
  * 商品管理 登録機能のコントローラクラス
  *
@@ -135,13 +138,19 @@ public class ItemRegistAdminController {
 			Thread.sleep(500);
 			
 				// 指定されたファイルを一時的にアップロード
+				
+				//静的リソースへアップロード
 				file.transferTo(uploadPath);
-				file.transferTo(uploadPathC);
+				
+				//file.transferTo(uploadPathC);
+				//静的リソースからコピー
+				Files.copy(uploadPath.toPath(), uploadPathC.toPath(), StandardCopyOption.REPLACE_EXISTING);
 			}
 			catch (Exception e) {
 				e.printStackTrace();
 				return "error";
 			}
+			
 
 			// 一時的にアップロードしたファイルの名前をFormクラスにセット
 			form.setImage(imageName);
