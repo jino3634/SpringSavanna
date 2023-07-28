@@ -1,0 +1,250 @@
+package jp.co.sss.shop.controller.order;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import jp.co.sss.shop.bean.BasketBean;
+import jp.co.sss.shop.bean.OrderBean;
+import jp.co.sss.shop.bean.OrderItemBean;
+import jp.co.sss.shop.bean.UserBean;
+import jp.co.sss.shop.entity.Item;
+import jp.co.sss.shop.entity.Order;
+import jp.co.sss.shop.entity.OrderItem;
+import jp.co.sss.shop.entity.User;
+import jp.co.sss.shop.form.OrderForm;
+import jp.co.sss.shop.form.OrderShowForm;
+import jp.co.sss.shop.repository.CategoryRepository;
+import jp.co.sss.shop.repository.ItemRepository;
+import jp.co.sss.shop.repository.OrderItemRepository;
+import jp.co.sss.shop.repository.OrderRepository;
+import jp.co.sss.shop.repository.UserRepository;
+
+@Controller
+public class OrderRegistCustomerController {
+
+	/**
+	 * 注文情報
+	 */
+	@Autowired
+	OrderRepository orderRepository;
+	/**
+	 * 注文Item情報
+	 */
+	@Autowired
+	OrderItemRepository orderItemRepository;
+	/**
+	 * User情報
+	 */
+	@Autowired
+	UserRepository userRepository;
+	/**
+	 * Item情報
+	 */
+	@Autowired
+	ItemRepository itemRepository;
+
+	/**
+	 * セッション
+	 */
+	@Autowired
+	HttpSession session;
+
+	/**
+	 * サーブレットコンテキスト
+	 */
+	@Autowired
+	ServletContext context;
+
+	/**
+	 * カテゴリ情報
+	 */
+	@Autowired
+	CategoryRepository categoryRepository;
+
+	/**
+	 * 住所入力画面の表示処理
+	 *
+	 * @param model		Viewとの値受渡し
+	 * @param backflg	戻るButtonで入った時、True
+	 * @param form     表示用注文情報
+	 * @return "order/regist/order_address_input" 住所入力画面へ
+	 */
+	@RequestMapping(path = "/address/input", method = {RequestMethod.POST})
+	public String inputAddress(Model model, boolean backflg, OrderForm form) {
+
+
+		OrderBean orderBean = new OrderBean();
+		if (!backflg) {
+			UserBean userBean = (UserBean) session.getAttribute("user");
+			User user = userRepository.getOne(userBean.getId());
+
+			
+			model.addAttribute("orderForm", user);
+		} else {
+	
+			model.addAttribute("orderForm", form);
+		}
+
+		return "order/regist/order_address_input";
+	}
+	/**
+	 * 住所入力画面の表示処理(Error画面)
+	 *
+	 * @param model		Viewとの値受渡し
+	 * @return "order/regist/order_address_input" 住所入力画面へ
+	 */
+	@RequestMapping(path = "/address/input", method = RequestMethod.GET)
+	public String inputAddressRedirect(Model model) {
+		return "order/regist/order_address_input";
+	}
+	/**
+	 * PayMentを決めるPage
+	 *
+	 * @param model		Viewとの値受渡し
+	 * @param form     表示用注文情報
+	 * @param result   Error情報Check
+	 * @param redirectAttributes     Error情報入力
+	 * @return "order/regist/order_payment_input" PayMentを決めるPageへ
+	 */
+	@RequestMapping(path = "/payment/input", method = {RequestMethod.POST,RequestMethod.GET})
+	public String inputPayment(Model model, @Valid @ModelAttribute OrderForm form, BindingResult result,
+			RedirectAttributes redirectAttributes) {
+
+		if (result.hasErrors()) {
+
+			redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.orderForm", result);
+
+			redirectAttributes.addFlashAttribute("orderForm", form);
+
+			return "redirect:/address/input";
+		}
+
+		model.addAttribute("orderForm", form);
+
+		return "order/regist/order_payment_input";
+	}
+
+	/**
+	 * 注文を最後にCheck、および在庫の確認。
+	 *
+	 * @param model		Viewとの値受渡し
+	 * @param form     表示用注文情報
+	 * @return "order/regist/order_check" 注文Check画面へ
+	 */
+	@RequestMapping(path = "/order/check", method = RequestMethod.POST)
+	public String checkOrder(Model model, OrderForm form) {
+
+		List<BasketBean> basketlist = (List<BasketBean>) session.getAttribute("BasketList");
+		List<OrderItemBean> orderItems = new ArrayList<OrderItemBean>();
+
+		System.out.println(basketlist);
+		Iterator<BasketBean> itr = basketlist.iterator();
+
+		BasketBean basketBean;
+		Item item;
+		List<String> error = new ArrayList<String>();
+		while (itr.hasNext()) {
+			basketBean = itr.next();
+			OrderItemBean orderitem = new OrderItemBean();
+			item = itemRepository.getOne(basketBean.getId());
+			orderitem.setId(item.getId());
+			orderitem.setName(item.getName());
+			orderitem.setPrice(item.getPrice());
+			orderitem.setImage(item.getImage());
+
+			if (basketBean.getStock() - basketBean.getOrderNum() < 0) {// (stock - orderNum) < 0, 在庫が足りない場合。
+				orderitem.setOrderNum(basketBean.getStock());
+				String mesage = "※" + orderitem.getName() + "は、在庫不足のため、在庫数分のみ注文できます。";
+				error.add(mesage);
+			} else if (basketBean.getStock() == 0) {// error if 在庫がない場合。
+				orderitem.setOrderNum(0);
+				String mesage = "※" + orderitem.getName() + "は、在庫切れのため注文できません。";
+				error.add(mesage);
+
+			} else {
+				orderitem.setOrderNum(basketBean.getOrderNum());// happy case.
+
+			}
+
+			orderitem.setSubtotal(orderitem.getPrice() * orderitem.getOrderNum());// subTotal = price * orderNum
+			orderItems.add(orderitem);
+
+		}
+		model.addAttribute("error", error);
+		model.addAttribute("orderItems", orderItems);
+		model.addAttribute("orderForm", form);
+
+		return "order/regist/order_check";
+	}
+
+	/**
+	 * 注文をDBに登録
+	 *
+	 * @param model		Viewとの値受渡し
+	 * @param form     表示用注文情報
+	 * @return "redirect:/order/complete" 注文画面を出力するMethodを呼び出す。
+	 */
+	@RequestMapping(path = "/order/complete", method = RequestMethod.POST)
+	public String completeOrder(Model model, OrderForm form) {
+
+		Order order = new Order();// order TableにData入力。
+
+		order.setPostalCode(form.getPostalCode());
+		order.setAddress(form.getAddress());
+		order.setName(form.getName());
+		order.setPhoneNumber(form.getPhoneNumber());
+		order.setPayMethod(form.getPayMethod());
+		UserBean userBean = (UserBean) session.getAttribute("user");
+		order.setUser(userRepository.getOne(userBean.getId()));
+
+		orderRepository.save(order);
+
+		List<BasketBean> basketlist = (List<BasketBean>) session.getAttribute("BasketList");// orderItem TableにData入力。
+		Iterator<BasketBean> itr = basketlist.iterator();
+		BasketBean basketBean;
+		while (itr.hasNext()) {
+			basketBean = itr.next();
+			OrderItem orderItem = new OrderItem();
+			orderItem.setQuantity(basketBean.getOrderNum());
+			orderItem.setOrder(order);
+
+			Item item = itemRepository.getOne(basketBean.getId());// itemのstockを変更。
+			item.setStock(item.getStock() - basketBean.getOrderNum());
+			itemRepository.save(item);
+
+			orderItem.setItem(item);
+			int price = itemRepository.getOne(basketBean.getId()).getPrice();
+			orderItem.setPrice(basketBean.getOrderNum() * price);
+
+			orderItemRepository.save(orderItem);
+		}
+
+		return "redirect:/order/complete";
+	}
+	/**
+	 * 住所入力画面の表示処理
+	 *
+	 * @return "order/regist/order_complete" 登録完了画面を出力
+	 */
+	@RequestMapping(path = "/order/complete", method = RequestMethod.GET)
+	public String completeOrderRedirect() {
+		return "order/regist/order_complete";
+	}
+
+}

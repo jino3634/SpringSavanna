@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	th:replace="~{common/layout_5block :: layout(~{::body/content()})}">
+<head>
+<title>トップ | シェアードショップ</title>
+<meta charset="UTF-8" />
+</head>
+<body class="user index">
+		
+		<div th:if="!${login}">
+			<h2 class="title">新着商品</h2>
+		</div>
+		<div th:if="${login}">
+			<h2 class="title">売れ筋商品</h2>
+		</div>
+	
+						<!--/* Item表示 */-->
+						<div class="item" th:each="item: ${items}">
+							<div class="item_name" th:text="${item.name}">
+							</div>
+							<a th:href="@{/item/detail/{id}(id=${item.id})}">
+								<img th:src="@{/img/{image}(image=${item.image})}" />
+							</a>
+							<div th:text="@{/img/{image}(image=${item.image})}" ></div>
+						</div>
+						
+						<!--/* ページリンク */-->
+			<ul class="paging"  th:if="!${#lists.isEmpty(orders)}">
+				<li th:class="${pages.first} ? 'disabled':''" >
+					<span th:if="${pages.first}">&lt;&lt;</span>
+					<a th:if="${not pages.first}" th:href="@{${url}(page=0)}">&lt;&lt;</a>
+				</li>
+				<li th:each='i : ${#numbers.sequence(0, pages.totalPages-1)}'
+					th:class="(${i}==${pages.number})? 'active' : ''" >
+					<span th:if='${i}==${pages.number}' th:text='${i+1}'>1</span>
+					<a th:if='${i}!=${pages.number}' th:href="@{${url}(page=${i})}">
+						<span th:text='${i+1}'>1</span>
+					</a>
+				</li>
+				<li th:class="${pages.last} ? 'disabled':''" >
+					<span th:if="${pages.last}">&gt;&gt;</span>
+					<a th:if="${not pages.last}"
+						th:href="@{${url}(page=(${pages.totalPages}-1))}">&gt;&gt;</a>
+				</li>
+			</ul>
+						
+</body>
+</html>

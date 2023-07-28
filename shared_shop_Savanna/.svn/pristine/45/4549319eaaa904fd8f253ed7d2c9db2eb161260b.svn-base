@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	th:replace="~{common/layout_5block :: layout(~{::body/content()})}">
+<head>
+<title>買い物かご | シェアードショップ</title>
+<meta charset="UTF-8" />
+</head>
+<body class="user shopping_basket">
+	
+
+	<h2 class="title">買い物かご</h2>
+	<div class="err" th:switch="${Error}">
+		<p th:case="1" th:text="${Name}+は、在庫不足のため、数を増やすことができません。"></p>
+
+	</div>
+	<table class="list_table basket">
+		<tr>
+	
+		<th:block th:if="${#lists.isEmpty(session.BasketList)}">
+		現在、お客様の買い物かごには商品がありません。商品をお選びください。
+		</th:block>
+	
+		<th:block th:if="!${#lists.isEmpty(session.BasketList)}">
+			<th>商品名</th>
+			<th>注文数</th>
+			<th>操作</th>
+			<th>在庫</th>
+			</th:block>
+		</tr>
+		<tr th:each="Basket : ${session.BasketList}">
+			<td th:text="${Basket.Name}"></td>
+			<td th:text="${Basket.OrderNum}"></td>
+			<td>
+				<form action="/shared_shop/basket/delete" method="post">
+					<input type="hidden" name="id" th:value="${Basket.id}" /> <input
+						type="submit" value="削除" class="delete" />
+				</form>
+			<td th:if="${Basket.Stock >5}">在庫あり</td>
+			<td th:if="${Basket.Stock >=1 && Basket.Stock <=5} "><span
+				th:text="${Basket.Stock}"></span></td>
+			<td th:if="${Basket.Stock == 0}">在庫なし</td>
+
+			</th:if>
+		</tr>
+	</table>
+	<form action="/address/input/" method="post">
+		<input type="hidden" name="backflg " th:value="false" /> <input
+			type="submit" value="ご注文の手続き" />
+	</form>
+	<form action="/shared_shop/basket/allDelete/" method="post">
+		<input type="submit" value="買い物かごを空にする" class="delete" />
+	</form>
+
+	<footer>
+		<small class="container"> Copyright(C) 2017 System Shared
+			co.,ltd, ALL Rights Reserved </small>
+	</footer>
+</body>
+</html>

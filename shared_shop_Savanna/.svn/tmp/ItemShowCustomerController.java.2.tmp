@@ -1,0 +1,169 @@
+package jp.co.sss.shop.controller.item;
+
+import java.util.List;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import jp.co.sss.shop.bean.ItemBean;
+
+
+import jp.co.sss.shop.entity.Item;
+import jp.co.sss.shop.repository.ItemRepository;
+import jp.co.sss.shop.repository.CategoryRepository;
+import jp.co.sss.shop.util.BeanCopy;
+import jp.co.sss.shop.util.Constant;
+
+/**
+ * 商品管理 一覧表示機能(一般会員用)のコントローラクラス
+ *
+ * @author SystemShared
+ */
+@Controller
+public class ItemShowCustomerController {
+	/**
+	 * 商品情報
+	 */
+	@Autowired
+	ItemRepository itemRepository;
+
+	@Autowired
+	HttpSession session;
+
+	/**
+	 * トップ画面 表示処理
+	 *
+	 * @param model    Viewとの値受渡し
+	 * @param pageable ページング情報
+	 * @return "/" トップ画面へ
+	 */
+	@RequestMapping(path = "/")
+	public String index(Model model, Pageable pageable) {
+		boolean login;
+		Page <Item> items;
+		if (session.getAttribute("user")==null) {
+			items = itemRepository.findByDeleteFlagOrderByInsertDateDesc(0, pageable);
+			login = false;
+		} else {
+			items = itemRepository.findAllOrderBySellDESC(pageable);
+			login = true;
+		}
+
+		model.addAttribute("login", login);
+		model.addAttribute("items", items);
+		model.addAttribute("pages", pageable);
+		return "index";
+	}
+
+	@RequestMapping(path = "item/list")
+	public String ShowItemList(Model model, Pageable pageable) {
+		Page<Item> itemList = itemRepository.findByDeleteFlagOrderByInsertDateDesc(Constant.NOT_DELETED, pageable);
+		List<ItemBean> itemBeanList = BeanCopy.copyEntityToItemBean(itemList.getContent());
+
+		model.addAttribute("pages", itemList);
+		model.addAttribute("items", itemBeanList);
+		model.addAttribute("url", "/item/list");
+
+		return "item/list/item_list";
+	}
+
+	@RequestMapping(path = "/item/detail/{id}")
+	public String showItem(@PathVariable int id, Model model) {
+		Item item = itemRepository.findById(id).orElse(null);
+		ItemBean itemBean = new ItemBean();
+
+		BeanUtils.copyProperties(item, itemBean);
+		itemBean.setCategoryName(item.getCategory().getName());
+
+		model.addAttribute("item", itemBean);
+
+		return "item/detail/item_detail";
+
+	}
+
+	@RequestMapping(path = "/item/list/1")
+	public String ShowItemLists(Model model, Pageable pageable) {
+		Page<Item> itemList = itemRepository.findByDeleteFlagOrderByInsertDateDesc(Constant.NOT_DELETED, pageable);
+		List<ItemBean> itemBeanList = BeanCopy.copyEntityToItemBean(itemList.getContent());
+
+		model.addAttribute("pages", itemList);
+		model.addAttribute("items", itemBeanList);
+		model.addAttribute("url", 1);
+		
+		return "item/list/item_list";
+	}
+
+	@RequestMapping(path = "/item/list/2")
+	public String ShowItemLists2(Model model, Pageable pageable) {
+		Page<Item> itemList = itemRepository.findAllOrderBySellDESC(pageable);
+		List<ItemBean> itemBeanList = BeanCopy.copyEntityToItemBean(itemList.getContent());
+
+		model.addAttribute("pages", itemList);
+		model.addAttribute("items", itemBeanList);
+		model.addAttribute("url", 1);
+
+		return "item/list/item_list";
+	}
+    
+	@RequestMapping(path = "/item/list/category/1")
+	public String ShowItemLists3(int categoryId, Model model, Pageable pageable) {
+		
+
+		Page<Item> itemList = itemRepository.findCategoryInnerJoin(categoryId, pageable);
+		List<ItemBean> itemBeanList = BeanCopy.copyEntityToItemBean(itemList.getContent());
+		
+		
+		
+		model.addAttribute("pages", itemList);
+		model.addAttribute("items", itemBeanList);
+		model.addAttribute("url", "/item/list");
+
+		return "item/list/item_list";
+	}
+    
+
+	@RequestMapping(path = "/item/list/price/1", method = {RequestMethod.GET,RequestMethod.POST})
+	public String SearchPrices1(int min, int max, Model model, Pageable pageable) {
+		//int min_i = Integer.parseInt(min);
+		//int max_i = Integer.parseInt(max);
+		
+		Page<Item> itemList = itemRepository.findAllByPriceOrderByInsertDateDesc(min, max, pageable);
+		List<ItemBean> itemBeanList = BeanCopy.copyEntityToItemBean(itemList.getContent());
+		
+		model.addAttribute("pages", itemList);
+		model.addAttribute("items", itemBeanList);
+		model.addAttribute("url", 2);
+		model.addAttribute("min", min);
+		model.addAttribute("max", max);
+		
+		return "item/list/item_list";
+	}
+	
+	@RequestMapping(path = "/item/list/price/2", method = {RequestMethod.GET,RequestMethod.POST})
+	public String SearchPrices2(int min, int max, Model model, Pageable pageable) {
+		//int min_i = Integer.parseInt(min);
+		//int max_i = Integer.parseInt(max);
+		
+		Page<Item> itemList = itemRepository.findAllByPriceOrderBySellDESC(min, max, pageable);
+		List<ItemBean> itemBeanList = BeanCopy.copyEntityToItemBean(itemList.getContent());
+		
+		model.addAttribute("pages", itemList);
+		model.addAttribute("items", itemBeanList);
+		model.addAttribute("url", 2);
+		model.addAttribute("min", min);
+		model.addAttribute("max", max);
+
+		return "item/list/item_list";
+	}
+
+
+}

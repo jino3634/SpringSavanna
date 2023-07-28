@@ -1,0 +1,177 @@
+
+DB : OracleDB
+Tool : Oracle SQL Developer
+
+
+
+ユーザー名：SYSTEM
+パスワード：system　　※Oracle 21c 設置時にの設定
+
+ホスト名：localhost
+ポート：1521
+SID：xe
+
+
+
+/*以下はSQL文*/
+/*DDL↓ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー*/
+/*テーブル生成文↓*/
+CREATE TABLE categories
+(
+    id       NUMBER(3)	NOT NULL PRIMARY KEY,
+    name       VARCHAR2(100),
+    description         VARCHAR2(100),
+    DELETE_FLAG         NUMBER(1) DEFAULT 0,
+    INSERT_DATE    DATE DEFAULT SYSDATE
+);
+
+
+
+CREATE TABLE items
+(
+    id       NUMBER(3)	NOT NULL PRIMARY KEY,
+    name       VARCHAR2(100),
+    price         NUMBER(5),
+    description   VARCHAR2(100),
+    stock         NUMBER(4),
+    image         VARCHAR2(100),
+    DELETE_FLAG    NUMBER(1) DEFAULT 0,
+    INSERT_DATE    DATE DEFAULT SYSDATE,
+    category_id number not null,
+    CONSTRAINT fk_category_id foreign key(category_id) references categories (id)
+);
+
+
+
+CREATE TABLE users
+(
+    id               NUMBER(3)	NOT NULL PRIMARY KEY,
+    email            VARCHAR2(100),
+    password         VARCHAR2(100),
+    name             VARCHAR2(100),
+    POSTAL_CODE       VARCHAR2(100),
+    address          VARCHAR2(100),
+    PHONE_NUMBER       VARCHAR2(100),
+    authority        NUMBER(1),
+    DELETE_FLAG    NUMBER(1) DEFAULT 0,
+    INSERT_DATE    DATE DEFAULT SYSDATE
+);
+
+
+
+CREATE TABLE orders
+(
+    id       NUMBER(3)	NOT NULL PRIMARY KEY,
+    POSTAL_CODE    VARCHAR2(100),
+    address       VARCHAR2(100),
+    name          VARCHAR2(100),
+    PHONE_NUMBER   VARCHAR2(100),
+    PAY_METHOD     NUMBER(10),
+    INSERT_DATE    DATE DEFAULT SYSDATE,
+    user_id number not null,
+    CONSTRAINT fk_user_id foreign key(user_id) references users (id)
+);
+
+
+
+
+
+CREATE TABLE order_items
+(
+    id            NUMBER(3)	NOT NULL PRIMARY KEY,
+    quantity      NUMBER(5),
+    order_id NUMBER(3),
+    item_id NUMBER(3),
+    CONSTRAINT fk_order_id foreign key(order_id) references Orders (id),
+    CONSTRAINT fk_item_id foreign key(item_id) references Items (id),
+    price         NUMBER(5)
+);
+
+
+
+
+/*シークエンス生成文↓*/
+
+CREATE SEQUENCE seq_categories START WITH 1 INCREMENT BY 1 NOCACHE;
+CREATE SEQUENCE seq_items START WITH 1 INCREMENT BY 1 NOCACHE;
+CREATE SEQUENCE seq_orders START WITH 1 INCREMENT BY 1 NOCACHE;
+CREATE SEQUENCE seq_order_items START WITH 1 INCREMENT BY 1 NOCACHE;
+CREATE SEQUENCE seq_users START WITH 1 INCREMENT BY 1 NOCACHE;
+
+
+/*DML↓ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー*/
+/*カラムの入力↓*/
+
+INSERT INTO categories (id, name, description)
+VALUES (seq_category.NEXTVAL, '果物', '甘い果物');
+
+INSERT INTO categories (id, name, description)
+VALUES (seq_category.NEXTVAL, '本', '本物の本');
+
+INSERT INTO categories (id, name, description)
+VALUES (seq_category.NEXTVAL, 'ペット', 'かわいいペット');
+
+INSERT INTO categories (id, name, description)
+VALUES (seq_category.NEXTVAL, '飲食', 'うまい！！');
+
+
+INSERT INTO items (id, name, price, description, stock, image, category_id)
+VALUES (seq_items.NEXTVAL, 'apple of jobs', 230, 'これ食べられますか。', 5, 'apple.jpg', 1);
+
+INSERT INTO items (id, name, price, description, stock, image, category_id)
+VALUES (seq_items.NEXTVAL, 'final fantasy', 780, '作者 : Jinoh Han', 5, 'dictionary.jpg', 2);
+
+INSERT INTO items (id, name, price, description, stock, image, category_id)
+VALUES (seq_items.NEXTVAL, '蛙', 7300, 'かわいいカエル', 5, 'frog.jpg', 3);
+
+INSERT INTO items (id, name, price, description, stock, image, category_id)
+VALUES (seq_items.NEXTVAL, 'アンパン', 1300, '人の顔に似たアンパン', 12, 'anpan.jpg', 4);
+
+
+/* 管理者アカウント↓*/
+INSERT INTO users (id, email, password, name, POSTAL_CODE, address, PHONE_NUMBER, authority)
+VALUES (seq_users.NEXTVAL, 'admin@mountain-info.co.jp', '12345678', 'Admin', '1231234', 'address', '0703333333', 1);
+
+/* 一般アカウント↓*/
+INSERT INTO users (id, email, password, name, POSTAL_CODE, address, PHONE_NUMBER, authority)
+VALUES (seq_users.NEXTVAL, 'jo.han@mountain-info.co.jp', '12345678', 'Jino Han', '1231234', 'address', '0703333333', 2);
+
+/*INSERTの後にはCOMITTを！！↓*/
+COMMIT;
+
+
+/*DCL↓ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー*/
+
+
+/*照会文↓*/
+SELECT * FROM categories;
+SELECT * FROM items;
+SELECT * FROM users;
+SELECT * FROM orders;
+SELECT * FROM order_items;
+
+
+/*DDL↓ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー*/
+
+
+/*削除文↓*/
+DROP SEQUENCE seq_categories_gen;
+DROP SEQUENCE seq_categories;
+DROP SEQUENCE seq_items_gen;
+DROP SEQUENCE seq_items;
+DROP SEQUENCE seq_orders_gen;
+DROP SEQUENCE seq_orders;
+DROP SEQUENCE seq_order_items_gen;
+DROP SEQUENCE seq_order_items;
+DROP SEQUENCE seq_users_gen;
+DROP SEQUENCE seq_users;
+
+DROP TABLE categories CASCADE CONSTRAINTS PURGE;
+DROP TABLE items CASCADE CONSTRAINTS PURGE;
+DROP TABLE orders CASCADE CONSTRAINTS PURGE;
+DROP TABLE order_items CASCADE CONSTRAINTS PURGE;
+DROP TABLE users CASCADE CONSTRAINTS PURGE;
+
+
+
+

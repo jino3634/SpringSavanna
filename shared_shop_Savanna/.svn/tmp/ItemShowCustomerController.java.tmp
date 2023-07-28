@@ -1,0 +1,143 @@
+package jp.co.sss.shop.controller.item;
+
+import java.util.List;
+
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import jp.co.sss.shop.bean.ItemBean;
+import jp.co.sss.shop.entity.Item;
+
+import jp.co.sss.shop.repository.ItemRepository;
+import jp.co.sss.shop.util.BeanCopy;
+import jp.co.sss.shop.util.Constant;
+
+/**
+* 商品管理 一覧表示機能(一般会員用)のコントローラクラス
+*
+* @author SystemShared
+*/
+@Controller
+public class ItemShowCustomerController {
+    /**
+     * 商品情報
+     */
+    @Autowired
+    ItemRepository itemRepository;
+
+<<<<<<< .mine
+	
+	/**
+	 * トップ画面 表示処理
+	 *
+	 * @param model    Viewとの値受渡し
+	 * @param pageable ページング情報
+	 * @return "/" トップ画面へ
+	 */
+	@RequestMapping(path = "/")
+	public String index(Model model,  Pageable pageable) {
+		return "index";
+	}
+	
+	@RequestMapping(path = "item/list/1")
+	public String ShowItemList(Model model,  Pageable pageable) {
+		Page<Item> itemList = itemRepository.findByDeleteFlagOrderByInsertDateDesc(Constant.NOT_DELETED, pageable);
+		List<ItemBean> itemBeanList = BeanCopy.copyEntityToItemBean(itemList.getContent());
+		
+		
+		
+		model.addAttribute("pages",itemList);
+		model.addAttribute("items",itemBeanList);
+		model.addAttribute("url", "/item/list");
+	
+		return "item/list/item_list";
+	}
+	
+	@RequestMapping(path = "/item/detail/{id}")
+	public String showItem(@PathVariable int id, Model model) {
+		Item item = itemRepository.findById(id).orElse(null);
+		ItemBean itemBean = new ItemBean();
+=======
+    
+    /**
+     * トップ画面 表示処理
+     *
+     * @param model    Viewとの値受渡し
+     * @param pageable ページング情報
+     * @return "/" トップ画面へ
+     */
+    @RequestMapping(path = "/")
+    public String index(Model model,  Pageable pageable) {
+        return "index";
+    }
+    
+    @RequestMapping(path = "item/list")
+    public String ShowItemList(Model model,  Pageable pageable) {
+        Page<Item> itemList = itemRepository.findByDeleteFlagOrderByInsertDateDesc(Constant.NOT_DELETED, pageable);
+        List<ItemBean> itemBeanList = BeanCopy.copyEntityToItemBean(itemList.getContent());
+        
+        model.addAttribute("pages",itemList);
+        model.addAttribute("items",itemBeanList);
+        model.addAttribute("url", "/item/list");
+    
+        return "item/list/item_list";
+    }
+    
+    @RequestMapping(path = "/item/detail/{id}")
+    public String showItem(@PathVariable int id, Model model) {
+        Item item = itemRepository.findById(id).orElse(null);
+        ItemBean itemBean = new ItemBean();
+>>>>>>> .r2278
+
+        BeanUtils.copyProperties(item, itemBean);
+        itemBean.setCategoryName(item.getCategory().getName());
+
+<<<<<<< .mine
+		model.addAttribute("item", itemBean);
+	
+		return "item/detail/item_detail";
+		
+		}
+	
+
+		
+	
+=======
+        model.addAttribute("item", itemBean);
+    
+        return "item/detail/item_detail";
+        
+        }
+    
+    @RequestMapping(path = "/item/list/1")
+    public String ShowItemLists(Model model,  Pageable pageable) {
+        Page<Item> itemList = itemRepository.findByDeleteFlagOrderByInsertDateDesc(Constant.NOT_DELETED, pageable);
+        List<ItemBean> itemBeanList = BeanCopy.copyEntityToItemBean(itemList.getContent());
+        
+        model.addAttribute("pages",itemList);
+        model.addAttribute("items",itemBeanList);
+        model.addAttribute("url", "/item/list");
+    
+        return "item/list/item_list";
+    }
+    
+    @RequestMapping(path = "/item/list/2")
+    public String ShowItemLists2(Model model,  Pageable pageable) {
+        Page<Item> itemList = itemRepository.findAllOrderBySellDESC(pageable);
+        List<ItemBean> itemBeanList = BeanCopy.copyEntityToItemBean(itemList.getContent());
+        
+        model.addAttribute("pages",itemList);
+        model.addAttribute("items",itemBeanList);
+        model.addAttribute("url", "/item/list");
+    
+        return "item/list/item_list";
+    }
+>>>>>>> .r2278
+
+}

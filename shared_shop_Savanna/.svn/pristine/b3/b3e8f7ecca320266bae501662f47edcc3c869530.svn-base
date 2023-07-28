@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+    th:replace="~{common/layout_5block :: layout(~{::body/content()})}">
+	<head>
+		<title>
+			商品一覧 | シェアードショップ
+		</title>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="stylesheet" type="text/css" href="css/layout.css" />
+		<link rel="stylesheet" type="text/css" href="css/stylesheet.css" />
+	</head>
+	<body class="user item_list">
+
+		<h2 class="title">商品一覧</h2>
+		
+		<table class="list_table item_list">
+			<tr>
+				<th>商品画像</th>
+				<th>商品名</th>
+				<th>価格</th>
+				<th>カテゴリ</th>
+			</tr>
+			<!--/* 商品情報 */-->
+			
+			<tr th:each="item: ${items}">
+				<td>
+				<img th:src="@{/img/{image}(image=${item.image})}" />
+				</td>
+				<td><a th:href="@{/item/detail/{id}(id=${item.id})}"
+					th:text="${item.name}"></a></td>
+				<td th:text="${item.price}"></td>
+				<td th:text="${item.categoryName}"></td>
+			</tr>
+			<div class="sorted_by">
+					<span>
+					<a href="/shared_shop/item/list/1">
+						新着順
+						</a>
+						<a>&nbsp;</a>
+					</span>
+					<a href="/shared_shop/item/list/2">
+						売れ筋順
+					</a>
+			</div>
+		</table>
+		<ul class="paging" th:if="!${#lists.isEmpty(items)}">
+			<li th:class="${pages.first} ? 'disabled':''" >
+				<span th:if="${pages.first}">&lt;&lt;</span>
+				<a th:if="${not pages.first}" th:href="@{${url}(page=0)}">&lt;&lt;</a>
+			</li>
+			<li th:each='i : ${#numbers.sequence(0, pages.totalPages-1)}'
+				th:class="(${i}==${pages.number})? 'active' : ''" >
+				<span th:if='${i}==${pages.number}' th:text='${i+1}'>1</span>
+				<a th:if='${i}!=${pages.number}' th:href="@{${url}(page=${i})}">
+					<span th:text='${i+1}'>1</span>
+				</a>
+			</li>
+			<li th:class="${pages.last} ? 'disabled':''" >
+				<span th:if="${pages.last}">&gt;&gt;</span>
+				<a th:if="${not pages.last}"
+					th:href="@{${url}(page=(${pages.totalPages}-1))}">&gt;&gt;</a>
+			</li>
+		</ul>
+
+	
+</body>
+</html>

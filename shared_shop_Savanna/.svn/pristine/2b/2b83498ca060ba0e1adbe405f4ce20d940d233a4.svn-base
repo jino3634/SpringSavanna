@@ -1,0 +1,77 @@
+package jp.co.sss.shop.controller.BasketCustomerController;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import jp.co.sss.shop.bean.BasketBean;
+import jp.co.sss.shop.entity.Item;
+import jp.co.sss.shop.repository.ItemRepository;
+
+@Controller
+public class BasketCustomerController {
+	@Autowired
+	ItemRepository Repository;
+	@Autowired
+	HttpSession session;
+	@RequestMapping(path ="/basket/list", method = RequestMethod.GET)
+	public String basketList() {
+		
+		return "/basket/list";
+	}
+	@RequestMapping(path ="/basket/add", method = RequestMethod.POST)
+	public  String addItem( Integer id ){
+		
+		
+		
+		Item item = Repository.getOne(id);
+		@SuppressWarnings("unchecked")
+		List<BasketBean> BasketList = (List<BasketBean>) session.getAttribute("BasketList");
+		if (BasketList==null) {
+			System.out.println("初期");
+			BasketList =new ArrayList<>();
+			
+			
+		}
+		System.out.println("同じ");
+		boolean itemFound = false;
+		for(int i=0;i<BasketList.size();i++) {
+			Integer cartId = BasketList.get(i).getId();
+			if (id == cartId){
+				BasketList.get(i).setOrderNum(BasketList.get(i).getOrderNum()+ 1);
+				itemFound = true;
+				System.out.println("同じ");
+				break;
+				
+			}
+		}
+		if (!itemFound) {
+			System.out.println("sinnki ");
+			BasketBean basketBean =new BasketBean();
+			basketBean.setId(item.getId());
+			basketBean.setName(item.getName());
+			basketBean.setStock(item.getStock());
+			basketBean.setOrderNum(1);
+			BasketList.add(basketBean);
+		}
+		
+		session.setAttribute("BasketList", BasketList);
+		return "redirect:/basket/list";
+	}
+	@RequestMapping(path ="/basket/delete,", method = RequestMethod.POST)
+	public  String deleteItem ( Integer id ){
+		
+		
+		
+		
+		return null;
+		
+	}
+
+}

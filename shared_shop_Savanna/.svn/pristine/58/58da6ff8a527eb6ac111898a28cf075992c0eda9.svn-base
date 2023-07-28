@@ -1,0 +1,63 @@
+package jp.co.sss.shop.repository;
+
+
+
+import org.springframework.data.domain.Page;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+
+import jp.co.sss.shop.entity.Item;
+
+/**
+ * itemsテーブル用リポジトリ
+ *
+ * @author System Shared
+ */
+@Repository
+public interface ItemRepository extends JpaRepository<Item, Integer> {
+
+
+	// 商品情報を新着順で検索
+	public Page<Item> findByDeleteFlagOrderByInsertDateDesc(int deleteFlag, Pageable pageable);
+	
+	@Query("SELECT new Item(i.id, i.price, i.name, i.image, c.name)"
+			 +" FROM OrderItem o INNER JOIN o.item i INNER JOIN i.category c"
+			 +" GROUP BY i.id, i.price, i.name, i.image, c.name ORDER BY COUNT(i) DESC")
+			 public Page<Item> findAllOrderBySellDESC(Pageable pageable);
+	
+
+	@Query("SELECT i FROM Item i WHERE i.price>= :min AND i.price<= :max order by INSERT_DATE desc")
+			 public Page<Item> findAllByPriceOrderByInsertDateDesc(@Param("min") Integer min, @Param("max") Integer max, Pageable pageable);
+	
+	@Query("SELECT new Item(i.id, i.price, i.name, i.image, c.name)"
+			 +" FROM OrderItem o INNER JOIN o.item i INNER JOIN i.category c"
+			 +" WHERE i.price>= :min AND i.price<= :max"
+			 +" GROUP BY i.id, i.price, i.name, i.image, c.name ORDER BY COUNT(i) DESC")
+	 		 public Page<Item> findAllByPriceOrderBySellDESC(@Param("min") Integer min, @Param("max") Integer max, Pageable pageable);
+
+
+
+//	@Query("SELECT i FROM categories c INNER JOIN c.items i WHERE c.id = :id")
+//	public Item findCategoriesInnerJoin(@Param("id") Integer id);
+
+	@Query("SELECT i FROM Category c INNER JOIN c.itemList i WHERE c.id= :id")
+	public Page<Item> findCategoryInnerJoin(@Param("id") Integer id, Pageable pageable);
+	
+//	@Query(value="SELECT i.price, i.name, i.image FROM categories c INNER JOIN items i ON c.id = i.category_id WHERE c.id = ?1", nativeQuery = true)
+//	public Page<Item> findCategoryInnerJoin(@Param("id") Integer id, Pageable pageable);
+	//-
+	//SELECT i.price, i.name, i.image, c.name FROM categories c INNER JOIN items i ON c.id = i.category_id WHERE c.id = 1;
+//	
+	
+//	@Query("SELECT i FROM Item i WHERE i.price>= :min AND i.price<= :max")
+//			 public Page<Item> findAllByPriceDESC(@Param("min") Integer min, @Param("max") Integer max, Pageable pageable);
+
+	
+
+}
+

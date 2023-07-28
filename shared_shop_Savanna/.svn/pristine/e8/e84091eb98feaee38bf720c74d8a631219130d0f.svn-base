@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+    th:replace="~{common/layout_5block :: layout(~{::body/content()})}">
+<head>
+<title> お届け先入力 | シェアードショップ</title>
+<meta charset="UTF-8" />
+</head>
+<body class="user order_address_input">
+		<h2 class="title">お届け先入力</h2>
+<div class="user_info_form_area">
+		<form th:action="@{/order/check}" enctype="multipart/form-data" method="post" class="user_info_form" th:object="${orderForm}">
+			
+			 <ul th:if="${#fields.hasErrors('*')}"  th:class="input_list" >
+  				<li th:each="err : ${#fields.errors('*')}" th:text="${err}" th:class="error_list" ></li>
+			</ul>
+			
+			<ul class="payment_method_select">
+							<li>
+								<label class="radio_label">
+									<input type="radio" name="payMethod" th:value="1"
+									checked="checked"/>
+									クレジットカード
+								</label>
+							</li>
+							<li>
+								<label class="radio_label">
+									<input type="radio" name="payMethod" th:value="2" />
+									銀行振り込み
+								</label>
+							</li>
+							<li>
+								<label class="radio_label">
+									<input type="radio" name="payMethod" th:value="3" />
+									着払い
+								</label>
+							</li>
+							<li>
+								<label class="radio_label">
+									<input type="radio" name="payMethod" th:value="4" />
+									電子マネー
+								</label>
+							</li>
+							<li>
+								<label class="radio_label">
+									<input type="radio" name="payMethod" th:value="5" />
+									コンビニ決済
+								</label>
+							</li>
+						</ul>
+						<!-- 				<span th:if="${#fields.hasErrors('payMethod')}" th:errors="*{payMethod}"></span> -->
+		<input type="hidden" name="postalCode" th:value="${orderForm.postalCode}" />
+			<input type="hidden" name="address" th:value="${orderForm.address}" />
+			<input type="hidden" name="name" th:value="${orderForm.name}" />
+			<input type="hidden" name="phoneNumber" th:value="${orderForm.phoneNumber}" />
+			<input type="submit" value="次へ" class="send_button" />
+		</form>
+		<form th:action="@{/payment/input}" method="post">
+		<input type="hidden" name="postalCode" th:value="${orderForm.postalCode}" />
+						<input type="hidden" name="address" th:value="${orderForm.address}" />
+						<input type="hidden" name="name" th:value="${orderForm.name}" />
+						<input type="hidden" name="phoneNumber" th:value="${orderForm.postalCode}" />
+						<input type="hidden" name="backflg" th:value="${orderForm.phoneNumber}" />
+			<input type="submit" value="戻る" class="back_button"/>
+		</form></div>
+</body>
+</html>
